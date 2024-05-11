@@ -27,7 +27,7 @@ def send_serial():
             # ユーザーからの入力を受け取る
             user_input = input("Enter data to send: ")
             # データをシリアルポートに書き込む
-            ser.write(user_input.encode())
+            ser.write(user_input.encode() + b'\r\n')
     except KeyboardInterrupt:
         print("Exiting send thread")
 
