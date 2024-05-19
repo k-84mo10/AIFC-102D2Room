@@ -73,13 +73,14 @@ def take_picture():
                 lines = file.readlines()
             if lines:
                 latest_line = lines[-1].strip()
-            
-            state = latest_line[1:5]
-            capture_image(timestamp, state)
+                state = latest_line[1:5]
+                capture_image(timestamp, state)
+
     except KeyboardInterrupt:
         print("Exiting take picture thread")
 
-
+with open('state.csv', 'w'):
+    pass
 
 # 読み取りスレッドを開始
 read_thread = threading.Thread(target=read_serial)
