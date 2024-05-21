@@ -1,7 +1,8 @@
 import serial
 import threading
 import re
-import cv2
+import cv2  
+import os
 from datetime import datetime
 from collections import deque
 
@@ -22,7 +23,7 @@ def read_serial():
                 data = ser.readline().decode().strip()
                 # print("Received:", data)
                 if is_valid_format(data):
-                    with open('state.csv', 'w') as file:
+                    with open('state.csv', 'a') as file:
                         file.write(data + '\n')
     except KeyboardInterrupt:
         print("Exiting read thread")
@@ -46,7 +47,7 @@ def send_serial():
         print("Exiting send thread")
 
 # 撮影用の関数
-def capture_image(timestamp, state):
+def capture_image(timestamp):
     cap = cv2.VideoCapture(0) 
     if not cap.isOpened():
         print("Unable to access camera")
@@ -55,7 +56,7 @@ def capture_image(timestamp, state):
     if not ret:
         print("Failed to capture image")
         return
-    filename = "raw/{}_{}.jpg".format(timestamp, state)
+    filename = "raw/{}.jpg".format(timestamp)
     cv2.imwrite(filename, frame)
     cap.release()
 
@@ -68,13 +69,21 @@ def take_picture():
     try:
         while True:
             timestamp = get_time()
-
+            capture_image(timestamp)
+            
             with open('state.csv', 'r', encoding='utf-8') as file:
                 lines = file.readlines()
+                old_picture_name = 'raw/{}.jpg'.format(timestamp)
+
             if lines:
                 latest_line = lines[-1].strip()
                 state = latest_line[1:5]
-                capture_image(timestamp, state)
+                new_picture_name = 'raw/{}_{}.jpg'.format(timestamp, state)
+                os.rename(old_picture_name, new_picture_name)
+            else:
+                os.remove(old_picture_name)
+
+
 
     except KeyboardInterrupt:
         print("Exiting take picture thread")
