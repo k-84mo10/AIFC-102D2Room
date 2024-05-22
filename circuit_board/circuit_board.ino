@@ -7,6 +7,8 @@ int is_button2_pushed = 0;
 int is_button3_pushed = 0;
 int is_button4_pushed = 0;
 
+unsigned long previous_time;
+
 void setup(){
     Serial.begin(9600);
 
@@ -27,6 +29,8 @@ void setup(){
     pinMode(5, INPUT_PULLUP);   // Forgetボタン state: 4
     pinMode(A4, INPUT_PULLUP);  // 左トグルスイッチ（Auto/Manual）  state:5
     pinMode(A5, INPUT_PULLUP);  // 右トグルスイッチ（Collect/Train）state:6
+
+    previous_time = millis();
 }
 
 void loop(){
@@ -42,7 +46,11 @@ void loop(){
     // 状態連絡
     state[5] = '0'+ digitalRead(A4); 
     state[6] = '0'+ digitalRead(A5);
-    SendStateNotification();
+    unsigned long current_time = millis();
+    if (current_time - previous_time > 1000 || current_time - previous_time < 0) {
+        SendStateNotification();
+        previous_time = current_time;
+    }
 
     // PCからの制御出力取得
     if (state[5] == '1') {
