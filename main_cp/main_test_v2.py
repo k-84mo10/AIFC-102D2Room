@@ -88,6 +88,14 @@ class Camera:
         filename = "raw/{}.jpg".format(timestamp)
         cv2.imwrite(filename, frame)
 
+    def capture_image(self, timestamp, quality):
+        ret, frame = self.cap.read()
+        if not ret:
+            print("Failed to capture image")
+            return
+        filename = "raw/{}.jpg".format(timestamp)
+        cv2.imwrite(filename, frame, [cv2.IMWRITE_JPEG_QUALITY, quality])
+
     def release(self):
         self.cap.release()
 
