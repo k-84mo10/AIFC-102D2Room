@@ -1,116 +1,155 @@
+import cv2
+import os
 import serial
 import threading
 import re
-import cv2  
-import os
 from datetime import datetime
-from collections import deque
 
-# ポートとボーレートを設定
-port = '/dev/ttyACM0'
-baudrate = 9600
+class SerialCommunication:
+    """
+    シリアル通信を行うためのクラス
+    """
+    def __init__(self, port, baudrate):
+        self.port = port
+        self.baudrate = baudrate
 
-# シリアルポートをオープン
-ser = serial.Serial(port, baudrate)
+    def start(self):
+        self.ser = serial.Serial(self.port, self.baudrate)
 
-# データ読み取り用の関数
-def read_serial():
-    try:
-        while True:
-            # データが受信されるまで待機
-            if ser.in_waiting > 0:
-                # データを読み取り
-                data = ser.readline().decode().strip()
-                # print("Received:", data)
-                if is_valid_format(data):
-                    with open('state.csv', 'w') as file:
-                        file.write(data + '\n')
-    except KeyboardInterrupt:
-        print("Exiting read thread")
+    def read(self):
+        if self.ser.in_waiting > 0:
+            read_data = self.ser.readline().decode().strip()
+            return read_data
 
-def is_valid_format(data):
-    pattern = r'^S\d{7}'
-    if re.match(pattern, str(data)):
-        return True
-    else:
-        return False
+    def write(self):
+        user_input = input("Enter data to send: ")
+        self.ser.write(user_input.encode() + b'\r\n')
 
-# データ送信用の関数
-def send_serial():
-    try:
-        while True:
-            # ユーザーからの入力を受け取る
-            user_input = input("Enter data to send: ")
-            # データをシリアルポートに書き込む
-            ser.write(user_input.encode() + b'\r\n')
-    except KeyboardInterrupt:
-        print("Exiting send thread")
+    def stop(self):
+        self.ser.close()
 
-# 撮影用の関数
-def capture_image(timestamp):
-    cap = cv2.VideoCapture(0) 
-    if not cap.isOpened():
-        print("Unable to access camera")
-        return
-    ret, frame = cap.read()
-    if not ret:
-        print("Failed to capture image")
-        return
-    filename = "raw/{}.jpg".format(timestamp)
-    cv2.imwrite(filename, frame)
-    cap.release()
+class StateManagement:
+    """
+    状態を読み書きするためのクラス
+    """
+    def __init__(self):
+        self.filename = 'state.csv'
+        with open(self.filename, 'w'):
+            pass
 
-def get_time():
-    now = datetime.now()
-    formatted_now = now.strftime('%Y%m%dT%H%M%S')
-    return formatted_now
+    def record_state(self, data):
+        if self.is_valid_format(data):
+            with open(self.filename, 'a') as file:
+                file.write(data + '\n')
 
-def take_picture():
-    try:
-        while True:
-            timestamp = get_time()
-            capture_image(timestamp)
-            
-            with open('state.csv', 'r', encoding='utf-8') as file:
-                lines = file.readlines()
-                old_picture_name = 'raw/{}.jpg'.format(timestamp)
-
-            if lines:
+    def get_state(self):
+        with open(self.filename, 'r', encoding='utf-8') as file:
+            lines = file.readlines()   
+            if lines:         
                 latest_line = lines[-1].strip()
                 state = latest_line[1:5]
-                new_picture_name = 'raw/{}_{}.jpg'.format(timestamp, state)
-                os.rename(old_picture_name, new_picture_name)
             else:
-                os.remove(old_picture_name)
-            # print("take photo")
+                state = "0000"
+        return state
 
+    def is_valid_format(self, data):
+        pattern = r'^S\d{7}'
+        if re.match(pattern, str(data)):
+            return True
+        else:
+            return False
+        
+class Camera:
+    """
+    カメラを操作するためのクラス
+    """
+    def __init__(self):
+        self.cap = cv2.VideoCapture(0)
+        if not self.cap.isOpened():
+            print("Unable to access camera")
 
+    def capture_image(self, timestamp, quality):
+        ret, frame = self.cap.read()
+        if not ret:
+            print("Failed to capture image")
+            return
+        filename = "raw/{}.jpg".format(timestamp)
+        cv2.imwrite(filename, frame, [cv2.IMWRITE_JPEG_QUALITY, quality])
 
-    except KeyboardInterrupt:
-        print("Exiting take picture thread")
+    def release(self):
+        self.cap.release()
 
-with open('state.csv', 'w'):
-    pass
+class PhotoNameManeger:
+    """
+    写真の名前を管理するためのクラス
+    """
+    def __init__(self, photoname):
+        self.photoname = photoname
+    
+    def change_photoname(self, state):
+        old_picture_name = 'raw/{}.jpg'.format(self.photoname)
+        new_picture_name = 'raw/{}_{}.jpg'.format(self.photoname, state)
+        os.rename(old_picture_name, new_picture_name)
+        self.photoname = "{}_{}".format(self.photoname, state)
 
-# 読み取りスレッドを開始
-read_thread = threading.Thread(target=read_serial)
-read_thread.daemon = True
-read_thread.start()
+class Main:
+    def __init__(self):
+        self.serial_communication = SerialCommunication('/dev/ttyACM0', 9600)
+        self.state_management = StateManagement()
+        self.camera = Camera()
+        self.serial_communication.start()
 
-# 送信スレッドを開始
-send_thread = threading.Thread(target=send_serial)
-send_thread.daemon = True
-send_thread.start()
+    def get_time(self):
+        now = datetime.now()
+        formatted_now = now.strftime('%Y%m%dT%H%M%S')
+        return formatted_now
 
-# 撮影スレッドを開始
-camera_thread = threading.Thread(target=take_picture)
-camera_thread.daemon = True
-camera_thread.start()
+    def state_acuire(self):
+        try:
+            while True:
+                data = self.serial_communication.read()
+                self.state_management.record_state(data)
+        except KeyboardInterrupt:
+            print("Exiting state acuirement")
+    
+    def take_picture(self):
+        try:
+            while True:
+                timestamp = self.get_time()
+                self.camera.capture_image(timestamp, 95)
+                state = self.state_management.get_state()
+                self.photo_name_maneger = PhotoNameManeger(timestamp)
+                self.photo_name_maneger.change_photoname(state)
+        except KeyboardInterrupt:
+            print("Exiting take picture")
 
-# Ctrl+C が押されるまでメインスレッドを続ける
-try:
-    while True:
-        pass
-except KeyboardInterrupt:
-    print("Exiting main thread")
-    ser.close()  # シリアルポートを閉じる
+    def send_state(self):
+        try:
+            while True:
+                self.serial_communication.write()
+        except KeyboardInterrupt:
+            print("Exiting sent state")
+
+    def run(self):
+        read_thread = threading.Thread(target=self.state_acuire)
+        read_thread.daemon = True
+        read_thread.start()
+
+        take_picture_thread = threading.Thread(target=self.take_picture)
+        take_picture_thread.daemon = True
+        take_picture_thread.start()
+
+        send_thread = threading.Thread(target=self.send_state)
+        send_thread.daemon = True
+        send_thread.start()
+
+        try:
+            while True:
+                pass
+        except KeyboardInterrupt:
+            self.camera.release()
+            print("Exiting main thread")
+
+if __name__ == '__main__':
+    main = Main()
+    main.run()
