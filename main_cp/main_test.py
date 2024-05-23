@@ -23,7 +23,7 @@ def read_serial():
                 data = ser.readline().decode().strip()
                 # print("Received:", data)
                 if is_valid_format(data):
-                    with open('state.csv', 'a') as file:
+                    with open('state.csv', 'w') as file:
                         file.write(data + '\n')
     except KeyboardInterrupt:
         print("Exiting read thread")
@@ -82,6 +82,7 @@ def take_picture():
                 os.rename(old_picture_name, new_picture_name)
             else:
                 os.remove(old_picture_name)
+            # print("take photo")
 
 
 

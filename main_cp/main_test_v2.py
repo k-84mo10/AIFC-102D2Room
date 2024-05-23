@@ -9,10 +9,6 @@ class SerialCommunication:
     """
     シリアル通信を行うためのクラス
     """
-    def __init__(self):
-        self.port = '/dev/ttyACM0'
-        self.baudrate = 9600
-
     def __init__(self, port, baudrate):
         self.port = port
         self.baudrate = baudrate
@@ -21,21 +17,13 @@ class SerialCommunication:
         self.ser = serial.Serial(self.port, self.baudrate)
 
     def read(self):
-        try:
-            while True:
-                if self.ser.in_waiting > 0:
-                    read_data = self.ser.readline().decode().strip()
-                    return read_data
-        except KeyboardInterrupt:
-            print("Exiting read thread")
+        if self.ser.in_waiting > 0:
+            read_data = self.ser.readline().decode().strip()
+            return read_data
 
     def write(self):
-        try:
-            while True:
-                user_input = input("Enter data to send: ")
-                self.ser.write(user_input.encode() + b'\r\n')
-        except KeyboardInterrupt:
-            print("Exiting send thread")
+        user_input = input("Enter data to send: ")
+        self.ser.write(user_input.encode() + b'\r\n')
 
     def stop(self):
         self.ser.close()
@@ -80,14 +68,6 @@ class Camera:
         if not self.cap.isOpened():
             print("Unable to access camera")
 
-    def capture_image(self, timestamp):
-        ret, frame = self.cap.read()
-        if not ret:
-            print("Failed to capture image")
-            return
-        filename = "raw/{}.jpg".format(timestamp)
-        cv2.imwrite(filename, frame)
-
     def capture_image(self, timestamp, quality):
         ret, frame = self.cap.read()
         if not ret:
@@ -114,10 +94,10 @@ class PhotoNameManeger:
 
 class Main:
     def __init__(self):
-        self.serial_communication = SerialCommunication()
+        self.serial_communication = SerialCommunication('/dev/ttyACM0', 9600)
         self.state_management = StateManagement()
         self.camera = Camera()
-        self.photo_name_maneger = PhotoNameManeger(self.get_time())
+        self.serial_communication.start()
 
     def get_time(self):
         now = datetime.now()
@@ -125,17 +105,30 @@ class Main:
         return formatted_now
 
     def state_acuire(self):
-        data = self.serial_communication.read()
-        self.state_management.record_state(data)
+        try:
+            while True:
+                data = self.serial_communication.read()
+                self.state_management.record_state(data)
+        except KeyboardInterrupt:
+            print("Exiting state acuirement")
     
     def take_picture(self):
-        timestamp = self.get_time()
-        self.camera.capture_image(timestamp)
-        state = self.state_management.get_state()
-        self.photo_name_maneger.change_photoname(state)
+        try:
+            while True:
+                timestamp = self.get_time()
+                self.camera.capture_image(timestamp, 95)
+                state = self.state_management.get_state()
+                self.photo_name_maneger = PhotoNameManeger(timestamp)
+                self.photo_name_maneger.change_photoname(state)
+        except KeyboardInterrupt:
+            print("Exiting take picture")
 
     def send_state(self):
-        self.serial_communication.write()
+        try:
+            while True:
+                self.serial_communication.write()
+        except KeyboardInterrupt:
+            print("Exiting sent state")
 
     def run(self):
         read_thread = threading.Thread(target=self.state_acuire)
