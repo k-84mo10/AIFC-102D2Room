@@ -131,17 +131,17 @@ class Main:
             print("Exiting sent state")
 
     def run(self):
-        read_thread = threading.Thread(target=self.state_acuire)
-        read_thread.daemon = True
-        read_thread.start()
+        read_serial_thread = threading.Thread(target=self.state_acuire)
+        read_serial_thread.daemon = True
+        read_serial_thread.start()
 
         take_picture_thread = threading.Thread(target=self.take_picture)
         take_picture_thread.daemon = True
         take_picture_thread.start()
 
-        send_thread = threading.Thread(target=self.send_state)
-        send_thread.daemon = True
-        send_thread.start()
+        send_serial_thread = threading.Thread(target=self.send_state)
+        send_serial_thread.daemon = True
+        send_serial_thread.start()
 
         try:
             while True:
