@@ -16,7 +16,7 @@ model.load_state_dict(state_dict)
 model.eval()
 
 # 画像が保存されているディレクトリのパス
-directory = 'test_image/0000'
+directory = 'test_image'
 
 # ディレクトリ内のファイルを取得
 files = os.listdir(directory)

@@ -1,5 +1,6 @@
 import threading
 import os
+import shutil
 from datetime import datetime
 
 from pythonlibs.camera import Camera
@@ -41,6 +42,20 @@ class Main:
                     os.remove(file_path)
             except Exception as e:
                 print(f"Error deleting {file_path}: {e}")
+        
+    def copy_files(self, source_dir, destination_dir, state):
+        try:
+            for filename in os.listdir(source_dir):
+                for filename in os.listdir(source_dir):
+                    if filename.endswith('.jpg'):
+                        source_file = os.path.join(source_dir, filename)
+                        base, ext = os.path.splitext(filename)
+                        new_filename = f"{base}_{state}{ext}"
+                        destination_file = os.path.join(destination_dir, new_filename)
+                        
+                        shutil.copy2(source_file, destination_file)
+        except Exception as e:
+            pass
 
     def state_acquire(self):
         try:
@@ -74,6 +89,7 @@ class Main:
                         tmp_state = self.machine_learning.test_image(latest_image_path)
                         if tmp_state != -1:
                             self.write_state_management.write_state(tmp_state)
+                            self.copy_files("test", "result", tmp_state)
         except KeyboardInterrupt:
             print("Exiting train")
 
@@ -85,7 +101,7 @@ class Main:
                 state = self.write_state_management.get_state()
                 if state != -1 and timestamp != pasttimestamp:
                     self.serial_communication.write(state)
-                    print(state)
+                    print(f"{timestamp} : {state}")
                 pasttimestamp = timestamp 
         except KeyboardInterrupt:
             print("Exiting send state")
