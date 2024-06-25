@@ -27,9 +27,9 @@ class Main:
         formatted_now = now.strftime('%Y%m%dT%H%M%S')
         return formatted_now
 
-    def is_10second(self, timestamp):
+    def is_3second(self, timestamp):
         seconds = int(timestamp[-2:])
-        if seconds % 10 == 0:
+        if seconds % 3 == 0:
             return True
         else:
             return False
@@ -74,7 +74,7 @@ class Main:
                    self.photo_name_maneger = PhotoNameManeger(timestamp)
                    self.photo_name_maneger.change_photoname(self.read_state_management.get_state())
                 else:
-                    if self.is_10second(timestamp):
+                    if self.is_3second(timestamp):
                         self.delete_all_files_in_directory("test")
                         self.camera.capture_test_image(timestamp, 95)                   
         except KeyboardInterrupt:
