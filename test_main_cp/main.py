@@ -21,6 +21,7 @@ class Main:
         self.serial_communication.start()
         self.delete_all_files_in_directory("train")
         self.delete_all_files_in_directory("test")
+        self.delete_all_files_in_directory("result")
 
     def get_time(self):
         now = datetime.now()
