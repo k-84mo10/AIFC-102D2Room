@@ -2,10 +2,14 @@ version: '3.8'
 
 services:
   python-app:
-    image: python:3.8-slim
-    container_name: python_container
+    build:
+      context: .
+    container_name: elab-aifc_container
     volumes:
       - .:/app
     working_dir: /app
-    command: bash -c "pip install torch torchvision opencv-python && tail -f /dev/null"
     tty: true
+    devices:
+      - "/dev/ttyACM0:/dev/ttyACM0"
+      - /dev/video0:/dev/video0 
+    command: bash -c "chmod 666 /dev/ttyACM0 && tail -f /dev/null"

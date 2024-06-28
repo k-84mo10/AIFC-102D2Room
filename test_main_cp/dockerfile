@@ -1,0 +1,18 @@
+# Dockerfile
+FROM python:3.8-slim
+
+WORKDIR /app
+
+# Set timezone
+RUN ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
+
+# Install system dependencies
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libopencv-dev \
+        && rm -rf /var/lib/apt/lists/*
+
+# Install dependencies
+RUN pip install torch torchvision opencv-python pyserial
+
+CMD ["tail", "-f", "/dev/null"]
