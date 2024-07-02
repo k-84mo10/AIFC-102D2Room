@@ -29,7 +29,7 @@ class TakeImage:
             self.start_time, timestamp
         )
         copied_picture_name = "main_cp_20240702/data/image/{}/{}/{}_{}.jpg".format(
-            directory_name, self.start_time, timestamp, state
+            directory_name, self.start_time, timestamp, state,
         )
         shutil.copy(source_picture_name, copied_picture_name)
 

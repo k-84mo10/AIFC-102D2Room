@@ -70,7 +70,7 @@ class SerialCommunication:
 
     # シリアル通信の書き込み
     def write(self):
-        with open(self.filename, "r", encoding="utf-8") as file:
+        with open(self.writefile, "r", encoding="utf-8") as file:
             lines = file.readlines()
             if lines:
                 latest_line = lines[-1].strip()

@@ -24,21 +24,23 @@ def read_serial(serial_communication):
 # 画像を撮り推論等を行うスレッド
 def main_process(
     take_image, serial_communication, machine_learning, start_time, state_list
-):
+):            
     while True:
         timestamp = get_time()
-        take_image.capture_image(timestamp, 95)
         if serial_communication.is_manual():
+            take_image.capture_image(timestamp, 95)
             state = serial_communication.get_state()
             if state != "----":
                 take_image.copy_image_to_other_directory(timestamp, state, "train")
         else:
-            image_path = "main_cp_20240702/data/image/raw/{}/{}.jpg".format(
-                start_time, timestamp
-            )
-            state = state_list[machine_learning.inference(image_path)]
-            take_image.copy_image_to_other_directory(timestamp, state, "result")
-            serial_communication.write_state(state)
+            if int(timestamp[-2:]) % 5 == 0:
+                take_image.capture_image(timestamp, 95)
+                image_path = "main_cp_20240702/data/image/raw/{}/{}.jpg".format(
+                    start_time, timestamp
+                )
+                state = state_list[machine_learning.inference(image_path)]
+                take_image.copy_image_to_other_directory(timestamp, state, "result")
+                serial_communication.write_state(state)
 
 
 # シリアル通信を送るスレッド
