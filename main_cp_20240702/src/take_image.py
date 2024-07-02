@@ -20,15 +20,15 @@ class TakeImage:
         if not ret:
             print("Failed to capture image")
             return
-        filename = "data/image/raw/{}/{}.jpg".format(self.start_time, timestamp)
+        filename = "main_cp_20240702/data/image/raw/{}/{}.jpg".format(self.start_time, timestamp)
         cv2.imwrite(filename, frame, [cv2.IMWRITE_JPEG_QUALITY, quality])
 
     # 画像を別のディレクトリにコピーする
     def copy_image_to_other_directory(self, timestamp, state, directory_name):
-        source_picture_name = "data/image/raw/{}/{}.jpg".format(
+        source_picture_name = "main_cp_20240702/data/image/raw/{}/{}.jpg".format(
             self.start_time, timestamp
         )
-        copied_picture_name = "data/image/{}/{}/{}_{}.jpg".format(
+        copied_picture_name = "main_cp_20240702/data/image/{}/{}/{}_{}.jpg".format(
             directory_name, self.start_time, timestamp, state
         )
         shutil.copy(source_picture_name, copied_picture_name)

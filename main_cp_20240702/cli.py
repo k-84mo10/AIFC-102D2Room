@@ -2,6 +2,7 @@ from main_cp_20240702 import SerialCommunication, TakeImage, MachineLearning
 import configparser
 import os
 import threading
+import ast
 from datetime import datetime
 
 
@@ -26,13 +27,13 @@ def main_process(
 ):
     while True:
         timestamp = get_time()
-        take_image.capture_train_image(timestamp, 95)
+        take_image.capture_image(timestamp, 95)
         if serial_communication.is_manual():
             state = serial_communication.get_state()
             if state != "----":
                 take_image.copy_image_to_other_directory(timestamp, state, "train")
         else:
-            image_path = "data/image/raw/{}/{}.jpg".format(start_time, timestamp)
+            image_path = "main_cp_20240702/data/image/raw/{}/{}.jpg".format(start_time, timestamp)
             state = state_list[machine_learning.inference(image_path)]
             take_image.copy_image_to_other_directory(timestamp, state, "result")
             serial_communication.write(state)
@@ -52,23 +53,26 @@ def main():
     sereal_baudrate = config.getint("serial", "serial_baudrate")
     model_path = config.get("machine_learning", "model_path")
     model_type = config.get("machine_learning", "model_type")
-    state_list = config.get("machine_learning", "state_list")
+    state_list = ast.literal_eval(config.get("machine_learning", "state_list"))
 
     # 現在時刻の取得
     start_time = get_time()
 
     # ディレクトリ・ファイルの作成
-    os.makedirs("data/image/raw/{}".format(start_time), exist_ok=True)
-    os.makedirs("data/image/train/{}".format(start_time), exist_ok=True)
-    os.makedirs("data/image/result/{}".format(start_time), exist_ok=True)
-    os.makedirs("data/csv/{}".format(start_time), exist_ok=True)
-    with open("data/csv/{}/read_state.csv".format(start_time), "w") as file:
+    os.makedirs("main_cp_20240702/data/image/raw/{}".format(start_time), exist_ok=True)
+    os.makedirs("main_cp_20240702/data/image/train/{}".format(start_time), exist_ok=True)
+    os.makedirs("main_cp_20240702/data/image/result/{}".format(start_time), exist_ok=True)
+    os.makedirs("main_cp_20240702/data/csv/{}".format(start_time), exist_ok=True)
+    with open("main_cp_20240702/data/csv/{}/read_state.csv".format(start_time), "w") as file:
         pass
 
     # クラスのインスタンス化
     serial_communication = SerialCommunication(serial_port, sereal_baudrate, start_time)
     take_image = TakeImage(start_time, camera_id)
     machine_learning = MachineLearning(model_path, model_type)
+
+    # シリアル通信の開始
+    serial_communication.start()
 
     # シリアル通信を読むスレッドの起動
     read_serial_thread = threading.Thread(

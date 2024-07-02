@@ -6,12 +6,12 @@ from PIL import Image
 
 class MachineLearning:
     def __init__(self, model_path, model_type):
-        if model_type == "vgg19":
+        if model_type == "vgg19_bn":
             self.model = models.vgg19_bn(pretrained=False)
             self.model.classifier[6] = torch.nn.Linear(
                 in_features=4096, out_features=16
             )
-        state_dict = torch.load(model_path, map_location=torch.device("cpu"))
+        state_dict = torch.load(model_path, map_location=torch.device('cpu'))
         self.model.load_state_dict(state_dict)
         self.model.eval()
         self.transform = transforms.Compose(

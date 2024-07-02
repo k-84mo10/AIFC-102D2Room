@@ -10,7 +10,7 @@ class SerialCommunication:
     def __init__(self, port, baudrate, start_time):
         self.port = port
         self.baudrate = baudrate
-        self.readfile = "data/csv/{}/read_state.csv".format(start_time)
+        self.readfile = "main_cp_20240702/data/csv/{}/read_state.csv".format(start_time)
 
     # シリアル通信の開始
     def start(self):
@@ -62,7 +62,7 @@ class SerialCommunication:
 
     # シリアル通信の書き込み
     def write(self, write_data):
-        self.ser.write(("C" + write_data + "0\n").encode() + b"\r\n")
+        self.ser.write(("C" + write_data + "0").encode() + b"\r\n")
 
     # シリアル通信の終了
     def stop(self):
