@@ -34,19 +34,20 @@ def take_picture(take_image, serial_communication):
 
 
 # 推論するスレッド
-def inference(machine_learning, state_list, take_image, serial_communication, start_time):
+def inference(machine_learning, state_list, take_image, start_time):
     while True:
-        files = os.scandir("main_cp_20240702/data/image/raw/{}".format(start_time))
-        if files:
-            last_file = max(files, key=lambda entry: entry.stat().st_mtime)
-            image_path = last_file.path
+        latest_image_time = take_image.get_image_path()
+        image_path = "main_cp_20240702/data/image/raw/{}/{}.jpg".format(
+            start_time, latest_image_time
+        )
+        if image_path:
             state = state_list[machine_learning.inference(image_path)]
-            pattern = r"(\d{8}T\d{6})"
-            match = re.search(pattern, image_path)
-            if match:
-                timestamp = match.group(1)
-            take_image.copy_image_to_other_directory(timestamp, state, "result")
-            serial_communication.write_state(state)
+            take_image.copy_image_to_other_directory(latest_image_time, state, "result")
+            with open(
+                "main_cp_20240702/data/csv/{}/write_state.csv".format(start_time),
+                "a",
+            ) as file:
+                file.write(state + "\n")
 
 
 # シリアル通信を送るスレッド
@@ -95,6 +96,10 @@ def main():
         "main_cp_20240702/data/csv/{}/write_state.csv".format(start_time), "w"
     ) as file:
         pass
+    with open(
+        "main_cp_20240702/data/csv/{}/image_time.csv".format(start_time), "w"
+    ) as file:
+        pass
 
     # クラスのインスタンス化
     serial_communication = SerialCommunication(serial_port, sereal_baudrate, start_time)
@@ -119,12 +124,17 @@ def main():
     take_picture_thread.start()
 
     # 推論するスレッド
-    # inference_thread = threading.Thread(
-    #     target=inference,
-    #     args=(machine_learning, state_list, take_image, serial_communication, start_time),
-    # )
-    # inference_thread.daemon = True
-    # inference_thread.start()
+    inference_thread = threading.Thread(
+        target=inference,
+        args=(
+            machine_learning,
+            state_list,
+            take_image,
+            start_time,
+        ),
+    )
+    inference_thread.daemon = True
+    inference_thread.start()
 
     # シリアル通信を送るスレッドの起動
     write_serial_thread = threading.Thread(
