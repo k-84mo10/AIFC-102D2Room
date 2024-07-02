@@ -1,6 +1,7 @@
 from main_cp_20240702 import SerialCommunication, TakeImage, MachineLearning
 import configparser
 import os
+import re
 import threading
 import ast
 from datetime import datetime
@@ -21,26 +22,30 @@ def read_serial(serial_communication):
             serial_communication.record_read_state(read_data)
 
 
-# 画像を撮り推論等を行うスレッド
-def main_process(
-    take_image, serial_communication, machine_learning, start_time, state_list
-):            
+# 画像を撮るスレッド
+def take_picture(take_image, timestamp, serial_communication):
     while True:
-        timestamp = get_time()
+        take_image.capture_image(timestamp, 95)
         if serial_communication.is_manual():
-            take_image.capture_image(timestamp, 95)
             state = serial_communication.get_state()
             if state != "----":
                 take_image.copy_image_to_other_directory(timestamp, state, "train")
-        else:
-            if int(timestamp[-2:]) % 5 == 0:
-                take_image.capture_image(timestamp, 95)
-                image_path = "main_cp_20240702/data/image/raw/{}/{}.jpg".format(
-                    start_time, timestamp
-                )
-                state = state_list[machine_learning.inference(image_path)]
-                take_image.copy_image_to_other_directory(timestamp, state, "result")
-                serial_communication.write_state(state)
+
+
+# 推論するスレッド
+def inference(machine_learning, state_list, take_image, serial_communication):
+    while True:
+        files = os.scandir("main_cp_20240702/data/image/raw")
+        if files:
+            last_file = max(files, key=lambda entry: entry.stat().st_mtime)
+            image_path = last_file.path
+            state = state_list[machine_learning.inference(image_path)]
+            pattern = r"(\d{8}T\d{6})"
+            match = re.search(pattern, image_path)
+            if match:
+                timestamp = match.group(1)
+            take_image.copy_image_to_other_directory(timestamp, state, "result")
+            serial_communication.write_state(state)
 
 
 # シリアル通信を送るスレッド
@@ -105,19 +110,20 @@ def main():
     read_serial_thread.daemon = True
     read_serial_thread.start()
 
-    # 画像を撮り推論等を行うスレッドの起動
-    main_process_thread = threading.Thread(
-        target=main_process,
-        args=(
-            take_image,
-            serial_communication,
-            machine_learning,
-            start_time,
-            state_list,
-        ),
+    # 画像を撮るスレッド
+    take_picture_thread = threading.Thread(
+        target=take_picture, args=(take_image, start_time, serial_communication)
     )
-    main_process_thread.daemon = True
-    main_process_thread.start()
+    take_picture_thread.daemon = True
+    take_picture_thread.start()
+
+    # 推論するスレッド
+    inference_thread = threading.Thread(
+        target=inference,
+        args=(machine_learning, state_list, take_image, serial_communication),
+    )
+    inference_thread.daemon = True
+    inference_thread.start()
 
     # シリアル通信を送るスレッドの起動
     write_serial_thread = threading.Thread(
