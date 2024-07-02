@@ -43,7 +43,7 @@ class TakeImage:
         )
         shutil.copy(source_picture_name, copied_picture_name)
 
-    # 最新の画像までのパスを取得する
+    # 最新の画像が取られた時刻を取得する
     def get_image_time(self):
         with open(self.image_timefile, "r") as file:
             lines = file.readlines()

@@ -5,6 +5,9 @@ from PIL import Image
 
 
 class MachineLearning:
+    """
+    機械学習のためのクラス
+    """
     def __init__(self, model_path, model_type):
         if model_type == "vgg19_bn":
             self.model = models.vgg19_bn(pretrained=False)
@@ -23,6 +26,7 @@ class MachineLearning:
             ]
         )
 
+    # 推論
     def inference(self, image_path):
         image = Image.open(image_path)
         image_tensor = self.transform(image)

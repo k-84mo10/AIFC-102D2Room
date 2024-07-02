@@ -27,6 +27,8 @@ def take_picture(take_image, serial_communication):
     while True:
         timestamp = get_time()
         take_image.capture_image(timestamp, 95)
+
+        # マニュアルモードの場合、撮影した画像と状態を紐付けてtrainフォルダに保存
         if serial_communication.is_manual():
             state = serial_communication.get_state()
             if state != "----":
@@ -36,18 +38,26 @@ def take_picture(take_image, serial_communication):
 # 推論するスレッド
 def inference(machine_learning, state_list, take_image, start_time):
     while True:
-        latest_image_time = take_image.get_image_path()
-        image_path = "main_cp_20240702/data/image/raw/{}/{}.jpg".format(
-            start_time, latest_image_time
-        )
-        if image_path:
-            state = state_list[machine_learning.inference(image_path)]
-            take_image.copy_image_to_other_directory(latest_image_time, state, "result")
-            with open(
-                "main_cp_20240702/data/csv/{}/write_state.csv".format(start_time),
-                "a",
-            ) as file:
-                file.write(state + "\n")
+        # 最新の画像の時間を取得
+        latest_image_time = take_image.get_image_time()
+
+        if latest_image_time:
+            image_path = "main_cp_20240702/data/image/raw/{}/{}.jpg".format(
+                start_time, latest_image_time
+            )
+            try:
+                # 推論
+                state = state_list[machine_learning.inference(image_path)]
+
+                # 推論結果と共に画像をresultフォルダに保存
+                take_image.copy_image_to_other_directory(latest_image_time, state, "result")
+                with open(
+                    "main_cp_20240702/data/csv/{}/write_state.csv".format(start_time),
+                    "a",
+                ) as file:
+                    file.write(state + "\n")
+            except OSError:
+                pass
 
 
 # シリアル通信を送るスレッド
@@ -65,6 +75,7 @@ def main():
     メインの処理
     """
 
+    # configファイルから情報をセット
     config_path = os.path.join(os.path.dirname(__file__), "configs", "config.ini")
     config = configparser.ConfigParser()
     config.read(config_path)
@@ -116,14 +127,14 @@ def main():
     read_serial_thread.daemon = True
     read_serial_thread.start()
 
-    # 画像を撮るスレッド
+    # 画像を撮るスレッドの起動
     take_picture_thread = threading.Thread(
         target=take_picture, args=(take_image, serial_communication)
     )
     take_picture_thread.daemon = True
     take_picture_thread.start()
 
-    # 推論するスレッド
+    # 推論するスレッドの起動
     inference_thread = threading.Thread(
         target=inference,
         args=(

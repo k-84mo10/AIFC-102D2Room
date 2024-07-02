@@ -39,7 +39,7 @@ class SerialCommunication:
         else:
             return False
 
-    # 保存されたデータから最新の状態を取得
+    # 保存された読み込みデータから最新の状態を取得
     def get_state(self):
         with open(self.readfile, "r", encoding="utf-8") as file:
             lines = file.readlines()
@@ -50,7 +50,7 @@ class SerialCommunication:
                 state = "----"
         return state
 
-    # 保存されたデータから最新の状態が手動か自動かを取得
+    # 保存された読み込みデータから最新の状態が手動か自動かを取得
     def is_manual(self):
         with open(self.readfile, "r", encoding="utf-8") as file:
             lines = file.readlines()
@@ -63,7 +63,7 @@ class SerialCommunication:
             else:
                 return False
 
-    # 推論したデータをファイルに保存
+    # 推論したデータを書き込み用のファイルに保存
     def write_state(self, write_data):
         with open(self.writefile, "a") as file:
             file.write(write_data + "\n")
