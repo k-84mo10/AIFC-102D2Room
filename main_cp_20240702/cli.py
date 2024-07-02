@@ -23,8 +23,9 @@ def read_serial(serial_communication):
 
 
 # 画像を撮るスレッド
-def take_picture(take_image, timestamp, serial_communication):
+def take_picture(take_image, serial_communication):
     while True:
+        timestamp = get_time()
         take_image.capture_image(timestamp, 95)
         if serial_communication.is_manual():
             state = serial_communication.get_state()
@@ -33,9 +34,9 @@ def take_picture(take_image, timestamp, serial_communication):
 
 
 # 推論するスレッド
-def inference(machine_learning, state_list, take_image, serial_communication):
+def inference(machine_learning, state_list, take_image, serial_communication, start_time):
     while True:
-        files = os.scandir("main_cp_20240702/data/image/raw")
+        files = os.scandir("main_cp_20240702/data/image/raw/{}".format(start_time))
         if files:
             last_file = max(files, key=lambda entry: entry.stat().st_mtime)
             image_path = last_file.path
@@ -112,18 +113,18 @@ def main():
 
     # 画像を撮るスレッド
     take_picture_thread = threading.Thread(
-        target=take_picture, args=(take_image, start_time, serial_communication)
+        target=take_picture, args=(take_image, serial_communication)
     )
     take_picture_thread.daemon = True
     take_picture_thread.start()
 
     # 推論するスレッド
-    inference_thread = threading.Thread(
-        target=inference,
-        args=(machine_learning, state_list, take_image, serial_communication),
-    )
-    inference_thread.daemon = True
-    inference_thread.start()
+    # inference_thread = threading.Thread(
+    #     target=inference,
+    #     args=(machine_learning, state_list, take_image, serial_communication, start_time),
+    # )
+    # inference_thread.daemon = True
+    # inference_thread.start()
 
     # シリアル通信を送るスレッドの起動
     write_serial_thread = threading.Thread(

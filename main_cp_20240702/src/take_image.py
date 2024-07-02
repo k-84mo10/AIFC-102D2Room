@@ -18,7 +18,7 @@ class TakeImage:
     def capture_image(self, timestamp, quality):
         ret, frame = self.cap.read()
         if not ret:
-            print("Failed to capture image")
+            # print("Failed to capture image")
             return
         filename = "main_cp_20240702/data/image/raw/{}/{}.jpg".format(self.start_time, timestamp)
         cv2.imwrite(filename, frame, [cv2.IMWRITE_JPEG_QUALITY, quality])
