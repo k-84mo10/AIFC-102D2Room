@@ -11,6 +11,9 @@ class SerialCommunication:
         self.port = port
         self.baudrate = baudrate
         self.readfile = "main_cp_20240702/data/csv/{}/read_state.csv".format(start_time)
+        self.writefile = "main_cp_20240702/data/csv/{}/write_state.csv".format(
+            start_time
+        )
 
     # シリアル通信の開始
     def start(self):
@@ -60,9 +63,18 @@ class SerialCommunication:
             else:
                 return False
 
+    # 推論したデータをファイルに保存
+    def write_state(self, write_data):
+        with open(self.writefile, "a") as file:
+            file.write(write_data + "\n")
+
     # シリアル通信の書き込み
-    def write(self, write_data):
-        self.ser.write(("C" + write_data + "0").encode() + b"\r\n")
+    def write(self):
+        with open(self.filename, "r", encoding="utf-8") as file:
+            lines = file.readlines()
+            if lines:
+                latest_line = lines[-1].strip()
+                self.ser.write(("C" + latest_line + "0").encode() + b"\r\n")
 
     # シリアル通信の終了
     def stop(self):

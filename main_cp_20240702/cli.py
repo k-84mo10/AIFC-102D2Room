@@ -33,10 +33,22 @@ def main_process(
             if state != "----":
                 take_image.copy_image_to_other_directory(timestamp, state, "train")
         else:
-            image_path = "main_cp_20240702/data/image/raw/{}/{}.jpg".format(start_time, timestamp)
+            image_path = "main_cp_20240702/data/image/raw/{}/{}.jpg".format(
+                start_time, timestamp
+            )
             state = state_list[machine_learning.inference(image_path)]
             take_image.copy_image_to_other_directory(timestamp, state, "result")
-            serial_communication.write(state)
+            serial_communication.write_state(state)
+
+
+# シリアル通信を送るスレッド
+def write_serial(serial_communication):
+    previous_time = get_time()
+    while True:
+        current_time = get_time()
+        if current_time != previous_time:
+            serial_communication.write()
+            previous_time = current_time
 
 
 def main():
@@ -60,10 +72,20 @@ def main():
 
     # ディレクトリ・ファイルの作成
     os.makedirs("main_cp_20240702/data/image/raw/{}".format(start_time), exist_ok=True)
-    os.makedirs("main_cp_20240702/data/image/train/{}".format(start_time), exist_ok=True)
-    os.makedirs("main_cp_20240702/data/image/result/{}".format(start_time), exist_ok=True)
+    os.makedirs(
+        "main_cp_20240702/data/image/train/{}".format(start_time), exist_ok=True
+    )
+    os.makedirs(
+        "main_cp_20240702/data/image/result/{}".format(start_time), exist_ok=True
+    )
     os.makedirs("main_cp_20240702/data/csv/{}".format(start_time), exist_ok=True)
-    with open("main_cp_20240702/data/csv/{}/read_state.csv".format(start_time), "w") as file:
+    with open(
+        "main_cp_20240702/data/csv/{}/read_state.csv".format(start_time), "w"
+    ) as file:
+        pass
+    with open(
+        "main_cp_20240702/data/csv/{}/write_state.csv".format(start_time), "w"
+    ) as file:
         pass
 
     # クラスのインスタンス化
@@ -94,6 +116,13 @@ def main():
     )
     main_process_thread.daemon = True
     main_process_thread.start()
+
+    # シリアル通信を送るスレッドの起動
+    write_serial_thread = threading.Thread(
+        target=write_serial, args=(serial_communication,)
+    )
+    write_serial_thread.daemon = True
+    write_serial_thread.start()
 
     try:
         while True:
