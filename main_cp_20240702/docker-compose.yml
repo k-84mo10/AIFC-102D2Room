@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  python-app:
+    build:
+      context: .
+    container_name: elab-aifc_container
+    volumes:
+      - .:/app
+    working_dir: /app
+    tty: true
+    devices:
+      - "/dev/ttyACM0:/dev/ttyACM0"
+      - /dev/video0:/dev/video0 
+    command: bash -c "chmod 666 /dev/ttyACM0 && tail -f /dev/null"

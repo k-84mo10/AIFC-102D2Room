@@ -9,10 +9,11 @@ from pythonlibs.serialcommunication import SerialCommunication
 from pythonlibs.readstatemanagement import ReadStateManagement
 from pythonlibs.writestatemanagement import WriteStateManagement
 from pythonlibs.machinelearning import MachineLearning
-        
+
+
 class Main:
     def __init__(self):
-        self.serial_communication = SerialCommunication('/dev/ttyACM0', 9600)
+        self.serial_communication = SerialCommunication("/dev/ttyACM0", 9600)
         self.read_state_management = ReadStateManagement()
         self.write_state_management = WriteStateManagement()
         self.camera = Camera()
@@ -25,7 +26,7 @@ class Main:
 
     def get_time(self):
         now = datetime.now()
-        formatted_now = now.strftime('%Y%m%dT%H%M%S')
+        formatted_now = now.strftime("%Y%m%dT%H%M%S")
         return formatted_now
 
     def is_3second(self, timestamp):
@@ -43,17 +44,17 @@ class Main:
                     os.remove(file_path)
             except Exception as e:
                 print(f"Error deleting {file_path}: {e}")
-        
+
     def copy_files(self, source_dir, destination_dir, state):
         try:
             for filename in os.listdir(source_dir):
                 for filename in os.listdir(source_dir):
-                    if filename.endswith('.jpg'):
+                    if filename.endswith(".jpg"):
                         source_file = os.path.join(source_dir, filename)
                         base, ext = os.path.splitext(filename)
                         new_filename = f"{base}_{state}{ext}"
                         destination_file = os.path.join(destination_dir, new_filename)
-                        
+
                         shutil.copy2(source_file, destination_file)
         except Exception as e:
             pass
@@ -65,19 +66,21 @@ class Main:
                 self.read_state_management.record_state(data)
         except KeyboardInterrupt:
             print("Exiting state acquisition")
-    
+
     def take_picture(self):
         try:
             while True:
                 timestamp = self.get_time()
                 if self.read_state_management.is_manual():
-                   self.camera.capture_train_image(timestamp, 95) 
-                   self.photo_name_maneger = PhotoNameManeger(timestamp)
-                   self.photo_name_maneger.change_photoname(self.read_state_management.get_state())
+                    self.camera.capture_train_image(timestamp, 95)
+                    self.photo_name_maneger = PhotoNameManeger(timestamp)
+                    self.photo_name_maneger.change_photoname(
+                        self.read_state_management.get_state()
+                    )
                 else:
                     if self.is_3second(timestamp):
                         self.delete_all_files_in_directory("test")
-                        self.camera.capture_test_image(timestamp, 95)                   
+                        self.camera.capture_test_image(timestamp, 95)
         except KeyboardInterrupt:
             print("Exiting take picture")
 
@@ -103,7 +106,7 @@ class Main:
                 if state != -1 and timestamp != pasttimestamp:
                     self.serial_communication.write(state)
                     print(f"{timestamp} : {state}")
-                pasttimestamp = timestamp 
+                pasttimestamp = timestamp
         except KeyboardInterrupt:
             print("Exiting send state")
 
@@ -123,7 +126,7 @@ class Main:
         test_picture_thread = threading.Thread(target=self.test_picture)
         test_picture_thread.daemon = True
         test_picture_thread.start()
-        
+
         try:
             while True:
                 pass
@@ -132,6 +135,7 @@ class Main:
             self.serial_communication.stop()
             print("Exiting main thread")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main = Main()
     main.run()
