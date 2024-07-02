@@ -1,3 +1,4 @@
 *.jpg
 *.pth
 *.csv
+/trash_box/
