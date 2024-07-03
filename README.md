@@ -63,7 +63,7 @@ main.pyを実行するためのCLIスクリプトです。
 ### 実行方法
 AIFCディレクトリで、以下のコマンドを実行してください。
 ```bash
-python -m main_cp_20240702
+python3 -m main_cp_20240702
 ```
 回路基板の左のトグルスイッチ（Automatic/Manual）によって動作が異なります。
 #### Automatic
