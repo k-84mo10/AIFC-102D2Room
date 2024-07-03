@@ -17,19 +17,19 @@ def get_time():
     return formatted_now
 
 
-def read_serial(serial_communication):
+def read_serial_thread_function(serial_communication):
     """Reads data from the serial communication.
 
     Args:
         serial_communication (SerialCommunication): The serial communication instance.
     """
     while True:
-        read_data = serial_communication.read()
+        read_data = serial_communication.read_serial()
         if read_data:
             serial_communication.record_read_state(read_data)
 
 
-def take_picture(take_image, serial_communication):
+def take_picture_thread_function(take_image, serial_communication):
     """Captures and saves images periodically.
 
     Args:
@@ -46,7 +46,9 @@ def take_picture(take_image, serial_communication):
                 take_image.copy_image_to_other_directory(timestamp, state, "train")
 
 
-def inference(machine_learning, state_list, take_image, start_time):
+def inference_thread_function(
+    machine_learning, state_list, take_image, start_time, serial_communication
+):
     """Performs inference on the latest captured image.
 
     Args:
@@ -54,6 +56,7 @@ def inference(machine_learning, state_list, take_image, start_time):
         state_list (list): The list of possible states.
         take_image (TakeImage): The instance to capture images.
         start_time (str): The start time used to generate file paths.
+        serial_communication (SerialCommunication): The serial communication instance.
     """
     while True:
         latest_image_time = take_image.get_image_time()
@@ -67,15 +70,12 @@ def inference(machine_learning, state_list, take_image, start_time):
                 take_image.copy_image_to_other_directory(
                     latest_image_time, state, "result"
                 )
-                with open(
-                    f"main_cp_20240702/data/csv/{start_time}/write_state.csv", "a"
-                ) as file:
-                    file.write(state + "\n")
+                serial_communication.write_state(state)
             except OSError:
                 pass
 
 
-def write_serial(serial_communication):
+def write_serial_thread_function(serial_communication):
     """Writes data to the serial communication periodically.
 
     Args:
@@ -123,26 +123,32 @@ def main():
     serial_communication.start()
 
     read_serial_thread = threading.Thread(
-        target=read_serial, args=(serial_communication,)
+        target=read_serial_thread_function, args=(serial_communication,)
     )
     read_serial_thread.daemon = True
     read_serial_thread.start()
 
     take_picture_thread = threading.Thread(
-        target=take_picture, args=(take_image, serial_communication)
+        target=take_picture_thread_function, args=(take_image, serial_communication)
     )
     take_picture_thread.daemon = True
     take_picture_thread.start()
 
     inference_thread = threading.Thread(
-        target=inference,
-        args=(machine_learning, state_list, take_image, start_time),
+        target=inference_thread_function,
+        args=(
+            machine_learning,
+            state_list,
+            take_image,
+            start_time,
+            serial_communication,
+        ),
     )
     inference_thread.daemon = True
     inference_thread.start()
 
     write_serial_thread = threading.Thread(
-        target=write_serial, args=(serial_communication,)
+        target=write_serial_thread_function, args=(serial_communication,)
     )
     write_serial_thread.daemon = True
     write_serial_thread.start()

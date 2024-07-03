@@ -22,7 +22,7 @@ class SerialCommunication:
         """Starts serial communication."""
         self.ser = serial.Serial(self.port, self.baudrate)
 
-    def read(self):
+    def read_serial(self):
         """Reads data from the serial port.
 
         Returns:
@@ -82,7 +82,7 @@ class SerialCommunication:
                 return latest_line[5] == "0"
             return False
 
-    def write_state(self, write_data):
+    def record_write_state(self, write_data):
         """Records the inferred data to a write file.
 
         Args:
@@ -91,7 +91,7 @@ class SerialCommunication:
         with open(self.writefile, "a") as file:
             file.write(write_data + "\n")
 
-    def write(self):
+    def write_serial(self):
         """Writes the latest inferred data to the serial port."""
         with open(self.writefile, "r", encoding="utf-8") as file:
             lines = file.readlines()
