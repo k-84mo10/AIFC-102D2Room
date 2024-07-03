@@ -13,6 +13,6 @@ RUN apt-get update \
         && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies
-RUN pip install torch==2.3.1+cu121 torchvision==0.18.1+cu121 opencv-python==4.9.0 pyserial==3.5
+RUN pip install torch==2.3.1 torchvision==0.18.1 opencv-python==4.9.0.80 pyserial==3.5
 
 CMD ["tail", "-f", "/dev/null"]
