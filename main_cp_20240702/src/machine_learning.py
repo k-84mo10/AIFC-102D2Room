@@ -5,10 +5,15 @@ from PIL import Image
 
 
 class MachineLearning:
-    """
-    機械学習のためのクラス
-    """
+    """Class for machine learning operations."""
+
     def __init__(self, model_path, model_type):
+        """Initializes the model and loads the state dict.
+
+        Args:
+            model_path (str): Path to the model state dictionary.
+            model_type (str): Type of the model to be used.
+        """
         if model_type == "vgg19_bn":
             self.model = models.vgg19_bn(pretrained=False)
             self.model.classifier[6] = torch.nn.Linear(
@@ -26,8 +31,15 @@ class MachineLearning:
             ]
         )
 
-    # 推論
     def inference(self, image_path):
+        """Performs inference on an image.
+
+        Args:
+            image_path (str): Path to the input image.
+
+        Returns:
+            int: Predicted class index.
+        """
         image = Image.open(image_path)
         image_tensor = self.transform(image)
         image_tensor = image_tensor.unsqueeze(0)
