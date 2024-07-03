@@ -59,7 +59,7 @@ def inference_thread_function(
         serial_communication (SerialCommunication): The serial communication instance.
     """
     while True:
-        latest_image_time = take_image.get_image_time()
+        latest_image_time = take_image.get_image_taken_time()
 
         if latest_image_time:
             image_path = (
@@ -70,7 +70,7 @@ def inference_thread_function(
                 take_image.copy_image_to_other_directory(
                     latest_image_time, state, "result"
                 )
-                serial_communication.write_state(state)
+                serial_communication.record_write_state(state)
             except OSError:
                 pass
 
@@ -85,7 +85,7 @@ def write_serial_thread_function(serial_communication):
     while True:
         current_time = get_time()
         if current_time != previous_time:
-            serial_communication.write()
+            serial_communication.write_serial()
             previous_time = current_time
 
 

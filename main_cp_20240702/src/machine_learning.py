@@ -19,17 +19,17 @@ class MachineLearning:
             self.model.classifier[6] = torch.nn.Linear(
                 in_features=4096, out_features=16
             )
-        state_dict = torch.load(model_path, map_location=torch.device("cpu"))
-        self.model.load_state_dict(state_dict)
-        self.model.eval()
-        self.transform = transforms.Compose(
-            [
-                transforms.Resize((224, 224)),
-                transforms.CenterCrop(224),
-                transforms.ToTensor(),
-                transforms.Normalize(0.5, 0.5),
-            ]
-        )
+            state_dict = torch.load(model_path, map_location=torch.device("cpu"))
+            self.model.load_state_dict(state_dict)
+            self.model.eval()
+            self.transform = transforms.Compose(
+                [
+                    transforms.Resize((224, 224)),
+                    transforms.CenterCrop(224),
+                    transforms.ToTensor(),
+                    transforms.Normalize(0.5, 0.5),
+                ]
+            )
 
     def inference(self, image_path):
         """Performs inference on an image.

@@ -49,7 +49,7 @@ class TakeImage:
         copied_picture_name = f"main_cp_20240702/data/image/{directory_name}/{self.start_time}/{timestamp}_{state}.jpg"
         shutil.copy(source_picture_name, copied_picture_name)
 
-    def get_image_time(self):
+    def get_image_taken_time(self):
         """Gets the time of the latest captured image.
 
         Returns:
