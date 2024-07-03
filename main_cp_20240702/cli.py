@@ -1,7 +1,6 @@
 from main_cp_20240702 import SerialCommunication, TakeImage, MachineLearning
 import configparser
 import os
-import re
 import threading
 import ast
 from datetime import datetime
@@ -50,7 +49,9 @@ def inference(machine_learning, state_list, take_image, start_time):
                 state = state_list[machine_learning.inference(image_path)]
 
                 # 推論結果と共に画像をresultフォルダに保存
-                take_image.copy_image_to_other_directory(latest_image_time, state, "result")
+                take_image.copy_image_to_other_directory(
+                    latest_image_time, state, "result"
+                )
                 with open(
                     "main_cp_20240702/data/csv/{}/write_state.csv".format(start_time),
                     "a",
