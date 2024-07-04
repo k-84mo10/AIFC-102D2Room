@@ -1,4 +1,5 @@
 *.jpg
 *.pth
 *.csv
-/trash_box/
+**/trash_box/** */
+**/__pycache__/**

@@ -5,7 +5,7 @@ import re
 class SerialCommunication:
     """Class for serial communication to obtain and record status."""
 
-    def __init__(self, port, baudrate, start_time):
+    def __init__(self, port: str, baudrate: int, start_time: int) -> None:
         """Initializes serial communication parameters and file paths.
 
         Args:
@@ -82,7 +82,7 @@ class SerialCommunication:
                 return latest_line[5] == "0"
             return False
 
-    def record_write_state(self, write_data):
+    def record_write_state(self, write_data: str) -> None:
         """Records the inferred data to a write file.
 
         Args:
