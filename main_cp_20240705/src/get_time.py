@@ -1,5 +1,5 @@
 # src/get_time.py
-
+from datetime import datetime
 
 def get_time():
     """Gets the current time formatted as a string.

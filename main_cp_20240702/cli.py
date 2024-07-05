@@ -66,11 +66,13 @@ def inference_thread_function(
                 f"main_cp_20240702/data/image/raw/{start_time}/{latest_image_time}.jpg"
             )
             try:
-                state = state_list[machine_learning.inference(image_path)]
-                take_image.copy_image_to_other_directory(
-                    latest_image_time, state, "result"
-                )
-                serial_communication.record_write_state(state)
+                state_value = machine_learning.inference(image_path)
+                if state_value != -1:
+                    state = state_list[machine_learning.inference(image_path)]
+                    take_image.copy_image_to_other_directory(
+                        latest_image_time, state, "result"
+                    )
+                    serial_communication.record_write_state(state)
             except OSError:
                 pass
 
@@ -115,6 +117,7 @@ def main():
         pass
     with open(f"main_cp_20240702/data/csv/{start_time}/image_time.csv", "w"):
         pass
+        
 
     serial_communication = SerialCommunication(serial_port, serial_baudrate, start_time)
     take_image = TakeImage(start_time, camera_id)

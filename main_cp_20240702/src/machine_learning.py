@@ -44,6 +44,23 @@ class MachineLearning:
         image_tensor = self.transform(image)
         image_tensor = image_tensor.unsqueeze(0)
         output = self.model(image_tensor)
-        predicted_test = torch.max(output, 1)[1]
-        value = predicted_test.item()
-        return value
+        print(output)
+        return self.is_max_value_over10(output)
+
+    def is_max_value_over15(self, output):
+        max_value = torch.max(output)
+        if max_value > 15:
+            predicted_test = torch.max(output, 1)[1]
+            value = predicted_test.item()
+            return value
+        else:
+            return -1
+
+    def is_max_value_over10(self, output):
+        max_value = torch.max(output)
+        if max_value > 10:
+            predicted_test = torch.max(output, 1)[1]
+            value = predicted_test.item()
+            return value
+        else:
+            return -1

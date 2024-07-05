@@ -1,5 +1,5 @@
 # src/write_serial_func.py
-
+from main_cp_20240705.lib import SerialCommunication
 
 def write_serial_function(serial_communication: SerialCommunication) -> None:
     """
@@ -9,4 +9,6 @@ def write_serial_function(serial_communication: SerialCommunication) -> None:
         serial_communication (SerialCommunication): The serial communication object.
     """
     while True:
-        serial_communication.write_serial(state_to_serial)
+        global state_to_serial
+        state = state_to_serial
+        serial_communication.write_serial(("C" + state+ "0").encode() + b"\r\n")
