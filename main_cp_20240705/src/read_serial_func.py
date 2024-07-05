@@ -1,8 +1,11 @@
 # src/read_serial_func.py
-from main_cp_20240705.lib import SerialCommunication
+from main_cp_20240705.lib import SerialCommunication, FileManage
 import re
 
-def read_serial_function(serial_communication: SerialCommunication) -> None:
+
+def read_serial_function(
+    serial_communication: SerialCommunication, read_serial_file: FileManage
+) -> None:
     """
     Reads the serial port and updates the state.
 
@@ -13,5 +16,4 @@ def read_serial_function(serial_communication: SerialCommunication) -> None:
         read_data = serial_communication.read_serial()
         pattern = r"^S\d{7}"
         if re.match(pattern, str(read_data)) is not None:
-            with open(f"main_cp_20240705/data/csv/{start_time}/read_serial.csv", "a") as file:
-                file.write(f"{read_data[1:6]}\n")            
+            read_serial_file.write_file(read_data)

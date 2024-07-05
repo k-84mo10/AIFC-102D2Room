@@ -27,43 +27,59 @@ def main():
     os.makedirs(f"main_cp_20240705/data/image/result/{start_time}", exist_ok=True)
     os.makedirs(f"main_cp_20240705/data/csv/{start_time}", exist_ok=True)
 
-    with open(f"main_cp_20240705/data/csv/{start_time}/read_state.csv", "w"):
-        pass
-    with open(f"main_cp_20240705/data/csv/{start_time}/write_state.csv", "w"):
-        pass
-    with open(f"main_cp_20240705/data/csv/{start_time}/take_image_time.csv", "w"):
-        pass
+    take_image_time_file = FileManage(
+        f"main_cp_20240705/data/csv/{start_time}/take_image_time.csv"
+    )
+    read_serial_file = FileManage(
+        f"main_cp_20240705/data/csv/{start_time}/read_serial.csv"
+    )
+    write_serial_file = FileManage(
+        f"main_cp_20240705/data/csv/{start_time}/write_serial.csv"
+    )
 
-    machine_learning = MachineLearning(model_path, model_type)
-    serial_communication = SerialCommunication(serial_port, serial_baudrate)
+    machine_learning = MachineLearning(
+        model_path, model_type, take_image_time_file, write_serial_file
+    )
+    serial_communication = SerialCommunication(
+        serial_port, serial_baudrate, read_serial_file, write_serial_file
+    )
     camera = Camera(camera_id, start_time)
-
-    lock = threading.Lock()
 
     read_serial_thread = threading.Thread(
         target=read_serial_function,
-        args=(serial_communication,),
+        args=(serial_communication, read_serial_file),
     )
     read_serial_thread.daemon = True
     read_serial_thread.start()
 
     take_picture_thread = threading.Thread(
         target=take_picture_function,
-        args=(camera, lock, ),
+        args=(
+            camera,
+            read_serial_file,
+            take_image_time_file,
+            start_time,
+        ),
     )
     take_picture_thread.daemon = True
     take_picture_thread.start()
 
     inference_thread = threading.Thread(
         target=inference_function,
-        args=(machine_learning, start_time, state_list, lock, ),
+        args=(
+            machine_learning,
+            start_time,
+            state_list,
+            take_image_time_file,
+            write_serial_file,
+        ),
     )
     inference_thread.daemon = True
     inference_thread.start()
 
     write_serial_thread = threading.Thread(
         target=write_serial_function,
-        args=(serial_communication,),
+        args=(serial_communication, write_serial_file),
     )
     write_serial_thread.daemon = True
     write_serial_thread.start()

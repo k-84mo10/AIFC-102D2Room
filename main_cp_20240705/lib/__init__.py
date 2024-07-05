@@ -3,3 +3,4 @@
 from .machine_learning import MachineLearning
 from .serial_communication import SerialCommunication
 from .camera import Camera
+from .file_manage import FileManage
