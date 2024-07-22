@@ -53,19 +53,14 @@ class MachineLearning:
         image_tensor = image_tensor.unsqueeze(0)
         output = self.model(image_tensor)
         print(output)
+        predicted_class = torch.argmax(output, dim=1).item()
 
-        # Get the top two values and their indices
-        top2_values, top2_indices = torch.topk(output, 2)
+        # テンソルの値を降順にソートし、そのインデックスを取得
+        sorted_output, indices = torch.sort(output, descending=True)
 
-        # Get the highest and second highest values
-        highest_value = top2_values[0].item()
-        second_highest_value = top2_values[1].item()
-
-        # Check if the difference is within 2
-        within_2 = abs(highest_value - second_highest_value) <= 2
-
-        if within_2:
+        largest_value = sorted_output[0].item()
+        second_largest_value = sorted_output[1].item()
+        if largest_value - second_largest_value < 2:
             return -1
 
-        predicted_class = torch.argmax(output, dim=1).item()
         return predicted_class
