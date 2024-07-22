@@ -21,7 +21,7 @@ def inference_function(
         state = read_serial_file.read_last_line()
         if state == "":
             continue
-            
+
         is_manual = state[5] == "0"
         if is_manual:
             continue
@@ -35,6 +35,9 @@ def inference_function(
                 f"main_cp_20240705/data/image/raw/{start_time}/{nowest_image_time}.jpg"
             )
             state_value = machine_learning.inference(image_path)
+            if state_value == -1:
+                continue
+
             inference_state = state_list[state_value]
 
             source_picture_name = (
