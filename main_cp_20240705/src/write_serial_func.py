@@ -27,5 +27,4 @@ def write_serial_function(
         if previous_state != state:
             last_state_changed_time = current_time
             previous_state = state
-
-        serial_communication.write_serial("C" + state + "0")
+            serial_communication.write_serial("C" + state + "0")

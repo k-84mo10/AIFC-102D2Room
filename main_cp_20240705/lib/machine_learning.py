@@ -38,7 +38,7 @@ class MachineLearning:
         else:
             raise ValueError(f"Unsupported model type: {model_type}")
 
-    def inference(self, image_path: str) -> int:
+    def inference(self, image_path: str) -> list:
         """
         Performs inference on an image.
 
@@ -52,15 +52,8 @@ class MachineLearning:
         image_tensor = self.transform(image)
         image_tensor = image_tensor.unsqueeze(0)
         output = self.model(image_tensor)
+        output_list = output.tolist()
+        return output_list[0]
         print(output)
         predicted_class = torch.argmax(output, dim=1).item()
-
-        # テンソルの値を降順にソートし、そのインデックスを取得
-        sorted_output, indices = torch.sort(output, descending=True)
-
-        largest_value = sorted_output[0].item()
-        second_largest_value = sorted_output[1].item()
-        if largest_value - second_largest_value < 2:
-            return -1
-
         return predicted_class
