@@ -22,6 +22,9 @@ def take_picture_function(
         take_image_time_file.write_file(timestamp)
 
         state = read_serial_file.read_last_line()
+        if state == "":
+            continue
+            
         is_manual = state[5] == "0"
         if is_manual:
             source_picture_name = (

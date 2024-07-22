@@ -28,7 +28,7 @@ class Camera:
         if not ret:
             return
 
-        filename = f"main_cp_20240703/data/image/raw/{self.start_time}/{timestamp}.jpg"
+        filename = f"main_cp_20240705/data/image/raw/{self.start_time}/{timestamp}.jpg"
         cv2.imwrite(filename, frame, [cv2.IMWRITE_JPEG_QUALITY, quality])
 
     def release(self) -> None:

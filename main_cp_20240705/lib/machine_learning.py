@@ -52,5 +52,6 @@ class MachineLearning:
         image_tensor = self.transform(image)
         image_tensor = image_tensor.unsqueeze(0)
         output = self.model(image_tensor)
+        print(output)
         predicted_class = torch.argmax(output, dim=1).item()
         return predicted_class

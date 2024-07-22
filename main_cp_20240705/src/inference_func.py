@@ -9,6 +9,7 @@ def inference_function(
     state_list: list,
     take_image_time_file: FileManage,
     write_serial_file: FileManage,
+    read_serial_file: FileManage,
 ) -> None:
     """
     Infers the state of the object in the image.
@@ -17,21 +18,31 @@ def inference_function(
         machine_learning (MachineLearning): The machine learning object.
     """
     while True:
-        nowest_image_time = take_image_time_file.read_last_line()
-
-        if nowest_image_time != "":
+        state = read_serial_file.read_last_line()
+        if state == "":
+            continue
+            
+        is_manual = state[5] == "0"
+        if is_manual:
             continue
 
-        image_path = (
-            f"main_cp_20240705/data/image/raw/{start_time}/{nowest_image_time}.jpg"
-        )
-        state_value = machine_learning.inference(image_path)
-        inference_state = state_list[state_value]
+        nowest_image_time = take_image_time_file.read_last_line()
+        if nowest_image_time == "":
+            continue
 
-        source_picture_name = (
-            f"main_cp_20240705/data/image/result/{start_time}/{nowest_image_time}.jpg"
-        )
-        copied_picture_name = f"main_cp_20240705/data/image/train/{start_time}/{nowest_image_time}_{inference_state}.jpg"
-        shutil.copy(source_picture_name, copied_picture_name)
+        try:
+            image_path = (
+                f"main_cp_20240705/data/image/raw/{start_time}/{nowest_image_time}.jpg"
+            )
+            state_value = machine_learning.inference(image_path)
+            inference_state = state_list[state_value]
 
-        write_serial_file.write_file(inference_state)
+            source_picture_name = (
+                f"main_cp_20240705/data/image/raw/{start_time}/{nowest_image_time}.jpg"
+            )
+            copied_picture_name = f"main_cp_20240705/data/image/result/{start_time}/{nowest_image_time}_{inference_state}.jpg"
+            shutil.copy(source_picture_name, copied_picture_name)
+
+            write_serial_file.write_file(inference_state)
+        except Exception as e:
+            pass

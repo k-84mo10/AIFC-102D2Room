@@ -12,12 +12,6 @@ class SerialCommunication:
         """
         self.port = port
         self.baudrate = baudrate
-        self.ser = None
-
-    def start(self) -> None:
-        """
-        Opens the serial connection.
-        """
         self.ser = serial.Serial(self.port, self.baudrate)
 
     def read_serial(self) -> str:
@@ -31,7 +25,6 @@ class SerialCommunication:
         if self.ser and self.ser.in_waiting > 0:
             read_data = self.ser.readline().decode().strip()
             return read_data
-        return ""
 
     def write_serial(self, data: str) -> None:
         """
@@ -41,7 +34,7 @@ class SerialCommunication:
             data (str): The data to write.
         """
         if self.ser:
-            self.ser.write(data.encode())
+            self.ser.write(data.encode()+ b"\r\n")
 
     def close(self) -> None:
         """
